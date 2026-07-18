@@ -1,0 +1,100 @@
+{
+  "identity": {
+    "name": "Hakan Dundar",
+    "role": "Software developer — Orange County, California",
+    "line": "I build software, automation tools and independent web projects.",
+    "title": "Hakan Dundar",
+    "metaDescription": "Software developer in Orange County, California. Portfolio, independent web projects and technical notes.",
+    "canonical": "https://hakandundar.me/"
+  },
+
+  "statusEndpoint": "https://api.dndr.net/status.json",
+
+  "sections": [
+    {
+      "label": "Portfolio",
+      "items": [
+        {
+          "domain": "hakan.run",
+          "url": "https://hakan.run",
+          "desc": "Full-stack development and QA automation. ASP.NET Core, Node.js, Playwright, AWS.",
+          "status": "live",
+          "metric": ""
+        }
+      ]
+    },
+    {
+      "label": "Projects",
+      "items": [
+        {
+          "domain": "americawhat.com",
+          "url": "https://americawhat.com",
+          "desc": "A running feed of the deeply American. Daily automated collection, edited and categorized.",
+          "status": "live",
+          "metric": ""
+        },
+        {
+          "domain": "oc-ca.com",
+          "url": "https://oc-ca.com",
+          "desc": "An independent local guide to Orange County. Beaches, trails, hidden gems and a live event calendar.",
+          "status": "live",
+          "metric": ""
+        },
+        {
+          "domain": "driverfairness.com",
+          "url": "https://driverfairness.com",
+          "desc": "A public archive of unresolved gig platform disputes. Every case sourced, structured and permanent.",
+          "status": "live",
+          "metric": ""
+        },
+        {
+          "domain": "aynenaynen.net",
+          "url": "https://aynenaynen.net",
+          "desc": "A Turkish-language platform for shared cultural moments. Browse, vote, submit.",
+          "status": "live",
+          "metric": ""
+        },
+        {
+          "domain": "turkiyecennet.com",
+          "url": "https://turkiyecennet.com",
+          "desc": "A regional guide to Turkey's coastlines, mountains, forests and ancient sites.",
+          "status": "wip",
+          "metric": ""
+        },
+        {
+          "domain": "esrasarigul.com",
+          "url": "https://esrasarigul.com",
+          "desc": "Website for a child development specialist. Design, information architecture and deployment.",
+          "status": "client",
+          "metric": ""
+        }
+      ]
+    },
+    {
+      "label": "Lab",
+      "items": [
+        {
+          "domain": "dndr.net",
+          "url": "https://dndr.net",
+          "desc": "My own infrastructure. Uptime monitoring, short links, shared APIs and technical notes.",
+          "status": "wip",
+          "metric": ""
+        }
+      ]
+    }
+  ],
+
+  "footer": {
+    "writing": {
+      "domain": "hdundar.com",
+      "url": "https://hdundar.com",
+      "note": "Personal writing and archive, 2008–2013. Turkish."
+    },
+    "now": "Building out americawhat.com and oc-ca.com. Starting turkiyecennet.com.",
+    "contact": [
+      { "label": "hakan@hdundar.com", "url": "mailto:hakan@hdundar.com" },
+      { "label": "github", "url": "https://github.com/" },
+      { "label": "linkedin", "url": "https://linkedin.com/in/" }
+    ]
+  }
+}
