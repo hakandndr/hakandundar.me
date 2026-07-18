@@ -5,8 +5,10 @@ Personal index. One page, no framework, no build dependencies.
 ```
 data/projects.json   all content lives here
 assets/style.css     all styling lives here
-build.js             renders index.html from the JSON
-index.html           generated output — do not edit by hand
+assets/favicon.svg   favicon
+build.js             renders dist/ from the JSON
+wrangler.jsonc       Cloudflare deploy config
+dist/                generated output — gitignored, never edit
 ```
 
 ## Build
@@ -20,16 +22,16 @@ Node 14+. No `npm install`, no `package.json`, nothing to update.
 ## Preview locally
 
 ```bash
+node build.js
+cd dist
 python -m http.server 8080
-# or
-npx serve .
 ```
 
-Then open http://localhost:8080. Opening `index.html` directly from disk also works.
+Then open http://localhost:8080. Opening `dist/index.html` directly from disk also works.
 
 ## Add or change a project
 
-Edit `data/projects.json`, run `node build.js`, commit. Never edit `index.html`.
+Edit `data/projects.json`, run `node build.js`, commit. Never edit anything in `dist/`.
 
 Each item:
 
@@ -66,18 +68,21 @@ Expected response shape:
 
 To disable the live check entirely, set `"statusEndpoint": ""` in the JSON.
 
-## Deploy — Cloudflare Pages
+## Deploy — Cloudflare
 
-1. Push this folder to a GitHub repo.
-2. Cloudflare dashboard → Workers & Pages → Create → Pages → connect the repo.
-3. Build command: `node build.js`
-4. Build output directory: `/` (root)
-5. Custom domain: `hakandundar.me`
+The repo deploys as a Workers static-asset project (`wrangler.jsonc` points at
+`dist/`). In the Cloudflare import-from-GitHub flow:
 
-Cloudflare handles TLS and caching. Deploys on every push.
+- Project name: `hakandundar-me` (no dots — Workers names are alphanumeric + hyphens)
+- Build command: `node build.js`
+- Deploy command: `npx wrangler deploy`
+- Path: `/`
 
-If the DNS is not on Cloudflare yet, move the nameservers first — this is also
-what `dndr.net` will need for Workers and R2 later.
+Deploys on every push to `main`.
+
+Custom domain: project → Settings → Domains & Routes → add `hakandundar.me`.
+The domain's nameservers need to be on Cloudflare first — `dndr.net` will need
+the same later for Workers, KV and R2.
 
 ## Notes
 

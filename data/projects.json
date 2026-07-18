@@ -7,9 +7,7 @@
     "metaDescription": "Software developer in Orange County, California. Portfolio, independent web projects and technical notes.",
     "canonical": "https://hakandundar.me/"
   },
-
   "statusEndpoint": "https://api.dndr.net/status.json",
-
   "sections": [
     {
       "label": "Portfolio",
@@ -83,7 +81,6 @@
       ]
     }
   ],
-
   "footer": {
     "writing": {
       "domain": "hdundar.com",
@@ -92,9 +89,18 @@
     },
     "now": "Building out americawhat.com and oc-ca.com. Starting turkiyecennet.com.",
     "contact": [
-      { "label": "hakan@hdundar.com", "url": "mailto:hakan@hdundar.com" },
-      { "label": "github", "url": "https://github.com/" },
-      { "label": "linkedin", "url": "https://linkedin.com/in/" }
+      {
+        "label": "hakan@dndr.net",
+        "url": "mailto:hakan@dndr.net"
+      },
+      {
+        "label": "github",
+        "url": "https://github.com/hakandndr"
+      },
+      {
+        "label": "linkedin",
+        "url": "https://www.linkedin.com/in/hdundar/"
+      }
     ]
   }
 }

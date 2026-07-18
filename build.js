@@ -9,6 +9,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = __dirname;
+const OUT = path.join(ROOT, "dist");
 const data = JSON.parse(
   fs.readFileSync(path.join(ROOT, "data", "projects.json"), "utf8")
 );
@@ -77,6 +78,7 @@ const html = `<!doctype html>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <script type="application/ld+json">
 ${JSON.stringify(
   {
@@ -153,5 +155,12 @@ ${data.sections.map(section).join("\n\n")}
 </html>
 `;
 
-fs.writeFileSync(path.join(ROOT, "index.html"), html, "utf8");
-console.log("index.html written — " + html.length + " bytes");
+fs.rmSync(OUT, { recursive: true, force: true });
+fs.mkdirSync(path.join(OUT, "assets"), { recursive: true });
+
+for (const f of fs.readdirSync(path.join(ROOT, "assets"))) {
+  fs.copyFileSync(path.join(ROOT, "assets", f), path.join(OUT, "assets", f));
+}
+
+fs.writeFileSync(path.join(OUT, "index.html"), html, "utf8");
+console.log("dist/index.html written — " + html.length + " bytes");
