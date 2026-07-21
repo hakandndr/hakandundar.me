@@ -86,6 +86,9 @@ the same later for Workers, KV and R2.
 
 ## Notes
 
+- Visits are sent to the private DNDR collector as `hostname + pathname + query`.
+  The browser sends at most one event per page per tab session; the collector also
+  applies its existing 60-second `IP + page` rate limit.
 - Font is JetBrains Mono from Google Fonts, with a system monospace fallback.
   To self-host later, drop the woff2 into `assets/` and swap the `<link>` for an
   `@font-face` rule in `style.css`.

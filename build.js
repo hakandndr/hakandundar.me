@@ -151,6 +151,20 @@ ${data.sections.map(section).join("\n\n")}
     .catch(function () { /* keep the values baked in at build time */ });
 })();
 </script>
+<script>
+(function () {
+  try {
+    var page = location.hostname + location.pathname + location.search;
+    var sessionKey = "dndr-visit:" + page;
+    if (sessionStorage.getItem(sessionKey)) return;
+    sessionStorage.setItem(sessionKey, "1");
+    new Image().src = "https://dndr.net/run/log_hakanrun.php"
+      + "?path=" + encodeURIComponent(page)
+      + "&referrer=" + encodeURIComponent(document.referrer || "")
+      + "&t=" + Date.now();
+  } catch (e) { /* analytics must never affect the page */ }
+})();
+</script>
 </body>
 </html>
 `;
