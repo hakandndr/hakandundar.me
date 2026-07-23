@@ -97,6 +97,24 @@ ${JSON.stringify(
   2
 )}
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  "mainEntity": {
+    "@type": "Person",
+    "@id": "https://hakandundar.me/#hakan-dundar",
+    "name": "Hakan Dundar",
+    "url": "https://hakandundar.me/",
+    "email": "mailto:hakan@dndr.net",
+    "jobTitle": "Software Developer",
+    "sameAs": [
+      "https://github.com/hakandndr",
+      "https://www.linkedin.com/in/hdundar/"
+    ]
+  }
+}
+</script>
 </head>
 <body>
   <main class="wrap">
