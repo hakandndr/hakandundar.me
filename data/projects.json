@@ -25,6 +25,13 @@
       "label": "Projects",
       "items": [
         {
+          "domain": "turkiyecennet.com",
+          "url": "https://turkiyecennet.com",
+          "desc": "A regional guide to Turkey's coastlines, mountains, forests and ancient sites.",
+          "status": "live",
+          "metric": ""
+        },
+        {
           "domain": "americawhat.com",
           "url": "https://americawhat.com",
           "desc": "A running feed of the deeply American. Daily automated collection, edited and categorized.",
@@ -39,13 +46,6 @@
           "metric": ""
         },
         {
-          "domain": "driverfairness.com",
-          "url": "https://driverfairness.com",
-          "desc": "A public archive of unresolved gig platform disputes. Every case sourced, structured and permanent.",
-          "status": "live",
-          "metric": ""
-        },
-        {
           "domain": "aynenaynen.net",
           "url": "https://aynenaynen.net",
           "desc": "A Turkish-language platform for shared cultural moments. Browse, vote, submit.",
@@ -53,16 +53,16 @@
           "metric": ""
         },
         {
-          "domain": "turkiyecennet.com",
-          "url": "https://turkiyecennet.com",
-          "desc": "A regional guide to Turkey's coastlines, mountains, forests and ancient sites.",
-          "status": "wip",
-          "metric": ""
-        },
-        {
           "domain": "esrasarigul.com",
           "url": "https://esrasarigul.com",
           "desc": "Website for a child development specialist. Design, information architecture and deployment.",
+          "status": "client",
+          "metric": ""
+        },
+        {
+          "domain": "yogiko.com",
+          "url": "https://yogiko.com",
+          "desc": "Website for a yoga therapy practice in Izmir. Design, build and deployment.",
           "status": "client",
           "metric": ""
         }
