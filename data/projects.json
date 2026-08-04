@@ -75,7 +75,7 @@
           "domain": "dndr.net",
           "url": "https://dndr.net",
           "desc": "My own infrastructure. Uptime monitoring, short links, shared APIs and technical notes.",
-          "status": "wip",
+          "status": "live",
           "metric": ""
         }
       ]
@@ -87,7 +87,7 @@
       "url": "https://hdundar.com",
       "note": "Personal writing and archive, 2008–2013. Turkish."
     },
-    "now": "Building out americawhat.com and oc-ca.com. Starting turkiyecennet.com.",
+    "now": "Building out the DNDR Labs platform on Cloudflare — uptime monitoring, asset delivery and a shared status API behind every project above.",
     "contact": [
       {
         "label": "hakan@dndr.net",
