@@ -242,8 +242,11 @@ ${data.sections.map(section).join("\n\n")}
 
     sessionStorage.setItem(sessionKey, "1");
 
+    // Was run/log_hakanrun.php on Hostinger. That endpoint is being retired —
+    // /collect is the Worker that writes straight to D1. Same query string, so
+    // this is an endpoint swap and nothing else.
     new Image().src =
-      "https://dndr.net/run/log_hakanrun.php" +
+      "https://dndr.net/collect" +
       "?path=" + encodeURIComponent(page) +
       "&referrer=" +
       encodeURIComponent(document.referrer || "") +
