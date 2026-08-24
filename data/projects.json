@@ -39,6 +39,13 @@
           "metric": ""
         },
         {
+          "domain": "turkcyber.com",
+          "url": "https://turkcyber.com",
+          "desc": "Turkish-language digital security publication. Scams, accounts and devices explained plainly, with a separate technical lane. Same domain since 2005.",
+          "status": "live",
+          "metric": ""
+        },
+        {
           "domain": "oc-ca.com",
           "url": "https://oc-ca.com",
           "desc": "An independent local guide to Orange County. Beaches, trails, hidden gems and a live event calendar.",
