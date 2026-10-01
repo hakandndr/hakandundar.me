@@ -1,8 +1,18 @@
 {
   "name": "hakandundar-me",
+  "main": "worker.js",
   "compatibility_date": "2026-07-18",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "404-page"
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    // Every request, not just some.
+    //
+    // By default Cloudflare answers a request that matches a built asset
+    // straight from the asset layer without invoking the Worker at all. That is
+    // the performance win of this setup, and it also means the Worker cannot
+    // attach a header to a page it never sees. This site is one page, so "every
+    // request" and "the page" are the same thing.
+    "run_worker_first": ["/*"]
   }
 }
