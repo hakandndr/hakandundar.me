@@ -38,8 +38,97 @@ function withSecurityHeaders(response) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// DNDR Analytics V2 (staging only).
+//
+// hakandundar.me is an independent property in DNDR (prop_hakandundar_me).
+// Where the DNDR_COLLECTOR Service Binding exists and ENVIRONMENT is listed
+// below, the Worker itself reports one PAGE event for each document
+// navigation to the site's one page. The visitor's response never waits for
+// it and nothing about the page changes; a DNDR failure is logged as an
+// outcome and ignored. The producer identity is the binding's
+// props.producerId (wrangler.jsonc), read by DNDR - this code sends none. The
+// hostname is the one the Worker was invoked on; the address, geography,
+// agent and referrer come from the request Cloudflare delivered, never from
+// the page.
+//
+// Production has no binding and keeps the page's existing browser beacon
+// until its own, separately approved cutover.
+// ---------------------------------------------------------------------------
+
+export const DNDR_FORWARD_ENVIRONMENTS = Object.freeze(["staging"]);
+const PAGE_PATHS = new Set(["/", "/index.html"]);
+const FORWARD_ATTEMPTS = 2;
+
+export function dndrForwardingEnabled(env) {
+  return Boolean(env && env.DNDR_COLLECTOR && typeof env.DNDR_COLLECTOR.recordPage === "function") &&
+    DNDR_FORWARD_ENVIRONMENTS.includes(env.ENVIRONMENT || "");
+}
+
+/**
+ * A page view: a GET for the page document that was served (200, or 304 to a
+ * revalidation). Assets, the not-found page, HEAD, non-document fetches and
+ * speculative prefetches are not.
+ */
+export function isPageView(request, response) {
+  if (request.method !== "GET") return false;
+  if (!PAGE_PATHS.has(new URL(request.url).pathname)) return false;
+  if (response.status !== 200 && response.status !== 304) return false;
+  const purpose = `${request.headers.get("sec-purpose") || ""} ${request.headers.get("purpose") || ""}`.toLowerCase();
+  if (purpose.includes("prefetch") || purpose.includes("prerender")) return false;
+  const dest = request.headers.get("sec-fetch-dest");
+  if (dest) return dest === "document";
+  return (request.headers.get("accept") || "").includes("text/html");
+}
+
+/** The PAGE event for DNDR, keyed by this request's own Cloudflare ray id. */
+export function pageEvent(request) {
+  const url = new URL(request.url);
+  const cf = request.cf || {};
+  const ray = request.headers.get("cf-ray");
+  return {
+    producerEventId: `request:${ray || crypto.randomUUID()}`,
+    hostname: url.hostname,
+    path: url.pathname === "/index.html" ? "/" : url.pathname,
+    referrer: request.headers.get("referer") || "",
+    ip: request.headers.get("cf-connecting-ip") || "",
+    userAgent: request.headers.get("user-agent") || "",
+    country: cf.country || "",
+    region: cf.region || "",
+    regionCode: cf.regionCode || "",
+    city: cf.city || "",
+    asn: typeof cf.asn === "number" ? cf.asn : null,
+  };
+}
+
+export async function forwardToDndr(env, event) {
+  for (let attempt = 1; attempt <= FORWARD_ATTEMPTS; attempt += 1) {
+    try {
+      const result = await env.DNDR_COLLECTOR.recordPage(event);
+      const status = result && ["accepted", "duplicate", "rejected", "error"].includes(result.status) ? result.status : "error";
+      if (status !== "error" || attempt === FORWARD_ATTEMPTS) {
+        // The event id and the outcome only: never the address or the agent.
+        console.log(`dndr-forward: ${status}${result && result.reason ? ` (${result.reason})` : ""} ${event.producerEventId}`);
+        return status;
+      }
+    } catch (error) {
+      if (attempt === FORWARD_ATTEMPTS) {
+        console.error(`dndr-forward: error (${error && error.message ? error.message : String(error)}) ${event.producerEventId}`);
+        return "error";
+      }
+    }
+  }
+  return "error";
+}
+
 export default {
-  async fetch(request, env) {
-    return withSecurityHeaders(await env.ASSETS.fetch(request));
+  async fetch(request, env, ctx) {
+    const response = withSecurityHeaders(await env.ASSETS.fetch(request));
+    // A staging deployment is never indexed.
+    if (env && env.ENVIRONMENT === "staging") response.headers.set("X-Robots-Tag", "noindex, nofollow");
+    if (dndrForwardingEnabled(env) && ctx && typeof ctx.waitUntil === "function" && isPageView(request, response)) {
+      ctx.waitUntil(forwardToDndr(env, pageEvent(request)).catch(() => "error"));
+    }
+    return response;
   },
 };

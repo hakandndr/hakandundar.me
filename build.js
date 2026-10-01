@@ -9,7 +9,15 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = __dirname;
-const OUT = path.join(ROOT, "dist");
+
+// `node build.js --staging` builds the staging page into dist-staging/: never
+// indexed, and without the browser beacon to DNDR's production V1 collector,
+// so a staging visit can never be recorded as a production one. On staging the
+// Worker itself reports the page view to DNDR (worker.js). It has its own
+// output directory so a production deploy can never pick up a staging page.
+// The production build is byte-for-byte what it was.
+const STAGING = process.argv.includes("--staging");
+const OUT = path.join(ROOT, STAGING ? "dist-staging" : "dist");
 
 const data = JSON.parse(
   fs.readFileSync(path.join(ROOT, "data", "projects.json"), "utf8")
@@ -115,11 +123,42 @@ const structuredData = {
   },
 };
 
+// The production page-view beacon (DNDR V1), exactly as deployed.
+const V1_BEACON = `<script>
+(function () {
+  try {
+    var page =
+      location.hostname +
+      location.pathname +
+      location.search;
+
+    var sessionKey = "dndr-visit:" + page;
+
+    if (sessionStorage.getItem(sessionKey)) return;
+
+    sessionStorage.setItem(sessionKey, "1");
+
+    // Was run/log_hakanrun.php on Hostinger. That endpoint is being retired —
+    // /collect is the Worker that writes straight to D1. Same query string, so
+    // this is an endpoint swap and nothing else.
+    new Image().src =
+      "https://dndr.net/collect" +
+      "?path=" + encodeURIComponent(page) +
+      "&referrer=" +
+      encodeURIComponent(document.referrer || "") +
+      "&t=" +
+      Date.now();
+  } catch (error) {
+    /* Analytics must never affect the page. */
+  }
+})();
+</script>`;
+
 const html = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">${STAGING ? '\n<meta name="robots" content="noindex, nofollow">' : ""}
 
 <title>${esc(id.title)}</title>
 <meta name="description" content="${esc(id.metaDescription)}">
@@ -228,35 +267,7 @@ ${data.sections.map(section).join("\n\n")}
 })();
 </script>
 
-<script>
-(function () {
-  try {
-    var page =
-      location.hostname +
-      location.pathname +
-      location.search;
-
-    var sessionKey = "dndr-visit:" + page;
-
-    if (sessionStorage.getItem(sessionKey)) return;
-
-    sessionStorage.setItem(sessionKey, "1");
-
-    // Was run/log_hakanrun.php on Hostinger. That endpoint is being retired —
-    // /collect is the Worker that writes straight to D1. Same query string, so
-    // this is an endpoint swap and nothing else.
-    new Image().src =
-      "https://dndr.net/collect" +
-      "?path=" + encodeURIComponent(page) +
-      "&referrer=" +
-      encodeURIComponent(document.referrer || "") +
-      "&t=" +
-      Date.now();
-  } catch (error) {
-    /* Analytics must never affect the page. */
-  }
-})();
-</script>
+${STAGING ? "" : V1_BEACON}
 </body>
 </html>
 `;
@@ -284,7 +295,7 @@ fs.writeFileSync(
 );
 
 console.log(
-  "dist/index.html written — " +
+  path.basename(OUT) + "/index.html written — " +
     html.length +
     " bytes"
 );

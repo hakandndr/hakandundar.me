@@ -14,5 +14,41 @@
     // attach a header to a page it never sees. This site is one page, so "every
     // request" and "the page" are the same thing.
     "run_worker_first": ["/*"]
+  },
+
+  // The top level above is production and is unchanged. `wrangler deploy`
+  // with no --env still deploys exactly that.
+  "env": {
+    // A separate Worker on a dndr.net hostname, so nothing about it can touch
+    // the hakandundar.me zone. Built with `node build.js --staging`, which
+    // writes dist-staging/: noindex, and no browser beacon to DNDR's production
+    // V1 collector. The page view is reported by the Worker instead, through
+    // the Service Binding below, as DNDR's independent hakandundar.me property
+    // (no redirect, no hakan.run attribution).
+    "staging": {
+      "name": "hakandundar-me-staging",
+      "vars": { "ENVIRONMENT": "staging" },
+      "assets": {
+        "directory": "./dist-staging",
+        "binding": "ASSETS",
+        "not_found_handling": "404-page",
+        "run_worker_first": ["/*"]
+      },
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [
+        { "pattern": "hakandundar-me-staging.dndr.net", "custom_domain": true }
+      ],
+      // DNDR reads props.producerId from this binding, so this Worker's code
+      // cannot choose another identity. Production declares no binding.
+      "services": [
+        {
+          "binding": "DNDR_COLLECTOR",
+          "service": "dndr-collector-staging",
+          "entrypoint": "ProducerApi",
+          "props": { "producerId": "prd_hakandundar_me_staging_binding" }
+        }
+      ]
+    }
   }
 }
