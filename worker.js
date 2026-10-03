@@ -39,7 +39,7 @@ function withSecurityHeaders(response) {
 }
 
 // ---------------------------------------------------------------------------
-// DNDR Analytics V2 (staging only).
+// DNDR Analytics V2 (staging and production).
 //
 // hakandundar.me is an independent property in DNDR (prop_hakandundar_me).
 // Where the DNDR_COLLECTOR Service Binding exists and ENVIRONMENT is listed
@@ -52,11 +52,14 @@ function withSecurityHeaders(response) {
 // agent and referrer come from the request Cloudflare delivered, never from
 // the page.
 //
-// Production has no binding and keeps the page's existing browser beacon
-// until its own, separately approved cutover.
+// Staging binds dndr-collector-staging; production (since 2026-10-03) binds
+// dndr-collector with its own producer, each declared in wrangler.jsonc, so
+// neither can write the other's identity. Production also keeps the page's
+// existing V1 browser beacon to dndr.net/collect, which stays this site's
+// original analytics; the Worker report is an additional, best-effort copy.
 // ---------------------------------------------------------------------------
 
-export const DNDR_FORWARD_ENVIRONMENTS = Object.freeze(["staging"]);
+export const DNDR_FORWARD_ENVIRONMENTS = Object.freeze(["staging", "production"]);
 const PAGE_PATHS = new Set(["/", "/index.html"]);
 const FORWARD_ATTEMPTS = 2;
 

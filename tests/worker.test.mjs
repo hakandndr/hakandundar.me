@@ -1,5 +1,5 @@
-// Worker behaviour: the security headers on every response, and the staging-only
-// page view report to DNDR. Addresses are from documentation ranges (RFC 5737).
+// Worker behaviour: the security headers on every response, and the page view
+// report to DNDR in staging and production. Addresses are from documentation ranges (RFC 5737).
 // Run: node --test
 
 import test from "node:test";
@@ -60,22 +60,6 @@ const quietly = async (fn) => {
 };
 
 const SECURITY = ["X-Content-Type-Options", "X-Frame-Options", "Referrer-Policy", "Permissions-Policy", "Strict-Transport-Security"];
-
-test("production: security headers, no robots header, nothing forwarded", async () => {
-  const dndr = collector();
-  const ctx = context();
-  // Even a binding present by mistake does nothing outside staging.
-  const response = await worker.fetch(page("/", {}, "GET", "hakandundar.me"), { ASSETS: assets(), DNDR_COLLECTOR: dndr }, ctx);
-  await ctx.settled();
-  for (const name of SECURITY) assert.ok(response.headers.get(name), name);
-  assert.equal(response.headers.get("X-Robots-Tag"), null);
-  assert.equal(await response.text(), "<!doctype html>");
-  assert.equal(dndr.calls.length, 0);
-  for (const ENVIRONMENT of ["production", "development", undefined]) {
-    assert.equal(dndrForwardingEnabled({ ENVIRONMENT, DNDR_COLLECTOR: dndr }), false, String(ENVIRONMENT));
-  }
-  assert.deepEqual(DNDR_FORWARD_ENVIRONMENTS, ["staging"]);
-});
 
 test("staging: one PAGE event for a document view, with the request's own identity", async () => {
   const dndr = collector();
@@ -166,12 +150,95 @@ test("the outcome log carries the event id and never the address or the agent", 
   }
 });
 
-test("configuration: production has no binding, staging is isolated", () => {
+test("production: security headers, no robots header, one PAGE event to the production collector", async () => {
+  const dndr = collector();
+  const ctx = context();
+  const response = await quietly(async () => {
+    const r = await worker.fetch(page("/", {}, "GET", "hakandundar.me"), { ASSETS: assets(), ENVIRONMENT: "production", DNDR_COLLECTOR: dndr }, ctx);
+    await ctx.settled();
+    return r;
+  });
+  for (const name of SECURITY) assert.ok(response.headers.get(name), name);
+  assert.equal(response.headers.get("X-Robots-Tag"), null, "production stays indexable");
+  assert.equal(await response.text(), "<!doctype html>");
+  assert.equal(dndr.calls.length, 1);
+  assert.equal(dndr.calls[0].hostname, "hakandundar.me");
+  assert.equal(dndr.calls[0].producerEventId, "request:8f00000000000001-LAX");
+  for (const ENVIRONMENT of ["development", undefined, "Production", "preview"]) {
+    assert.equal(dndrForwardingEnabled({ ENVIRONMENT, DNDR_COLLECTOR: dndr }), false, String(ENVIRONMENT));
+  }
+  assert.deepEqual(DNDR_FORWARD_ENVIRONMENTS, ["staging", "production"]);
+});
+
+test("production: whatever the collector does, the response is byte-for-byte the response without DNDR", async () => {
+  const plain = await worker.fetch(page("/", {}, "GET", "hakandundar.me"), { ASSETS: assets() }, context());
+  const reference = { status: plain.status, headers: [...plain.headers].sort().join("\n"), body: await plain.text() };
+  const cases = {
+    accepted: collector(),
+    unavailable: collector(async () => { throw new Error("binding unavailable"); }),
+    throws: collector(() => { throw new TypeError("boom"); }),
+    rejects: collector({ status: "rejected", reason: "producer_unknown" }),
+    errors: collector({ status: "error", reason: "write_failed" }),
+    malformed: collector(async () => "not an object"),
+    "no binding": undefined,
+    "binding without recordPage": {},
+  };
+  for (const [name, dndr] of Object.entries(cases)) {
+    const ctx = context();
+    const response = await quietly(async () => {
+      const r = await worker.fetch(page("/", {}, "GET", "hakandundar.me"),
+        { ASSETS: assets(), ENVIRONMENT: "production", ...(dndr === undefined ? {} : { DNDR_COLLECTOR: dndr }) }, ctx);
+      await ctx.settled();
+      return r;
+    });
+    assert.deepEqual({ status: response.status, headers: [...response.headers].sort().join("\n"), body: await response.text() }, reference, name);
+  }
+});
+
+test("production: the response does not wait for a slow collector", async () => {
+  let release;
+  const slow = collector(() => new Promise((resolve) => { release = () => resolve({ status: "accepted" }); }));
+  const ctx = context();
+  const response = await worker.fetch(page("/", {}, "GET", "hakandundar.me"), { ASSETS: assets(), ENVIRONMENT: "production", DNDR_COLLECTOR: slow }, ctx);
+  assert.equal(response.status, 200, "answered while the collector call is still pending");
+  release();
+  await quietly(() => ctx.settled());
+});
+
+test("a repeated or retried report of one request carries one id, so DNDR counts it once", async () => {
+  const dndr = collector({ status: "duplicate" });
+  const event = pageEvent(page("/", {}, "GET", "hakandundar.me"));
+  await quietly(() => forwardToDndr({ DNDR_COLLECTOR: dndr }, event));
+  await quietly(() => forwardToDndr({ DNDR_COLLECTOR: dndr }, pageEvent(page("/", {}, "GET", "hakandundar.me"))));
+  assert.deepEqual(dndr.calls.map((e) => e.producerEventId), [event.producerEventId, event.producerEventId]);
+});
+
+test("the browser cannot choose the site, producer, property or hostname", async () => {
+  const dndr = collector();
+  const ctx = context();
+  const request = page("/?site=site_other&producerId=prd_other_binding&property=prop_other&hostname=other.example", {
+    "x-dndr-site": "site_other", "x-dndr-producer": "prd_other_binding", "x-forwarded-host": "other.example",
+  }, "GET", "hakandundar.me");
+  await quietly(async () => {
+    await worker.fetch(request, { ASSETS: assets(), ENVIRONMENT: "production", DNDR_COLLECTOR: dndr }, ctx);
+    await ctx.settled();
+  });
+  const event = dndr.calls[0];
+  assert.equal(event.hostname, "hakandundar.me");
+  assert.equal(event.path, "/");
+  for (const key of ["producerId", "site", "siteId", "property"]) assert.equal(key in event, false, key);
+  assert.doesNotMatch(JSON.stringify(event), /site_other|prd_other|prop_other|other\.example/);
+});
+
+test("configuration: production binds the production collector, staging the staging one, never each other's", () => {
   const config = JSON.parse(readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8")
     .replace(/^\s*\/\/.*$/gm, "").replace(/,(\s*[}\]])/g, "$1"));
   assert.equal(config.name, "hakandundar-me");
-  assert.equal(config.services, undefined);
-  assert.equal(config.vars, undefined);
+  assert.deepEqual(config.vars, { ENVIRONMENT: "production" });
+  assert.deepEqual(config.services, [{
+    binding: "DNDR_COLLECTOR", service: "dndr-collector", entrypoint: "ProducerApi",
+    props: { producerId: "prd_hakandundar_me_binding" },
+  }]);
   assert.equal(config.assets.directory, "./dist");
   assert.equal(config.routes, undefined, "production routing is managed outside this file");
   const staging = config.env.staging;
@@ -186,5 +253,7 @@ test("configuration: production has no binding, staging is isolated", () => {
     binding: "DNDR_COLLECTOR", service: "dndr-collector-staging", entrypoint: "ProducerApi",
     props: { producerId: "prd_hakandundar_me_staging_binding" },
   }]);
+  assert.doesNotMatch(JSON.stringify(config.services), /staging/);
+  assert.doesNotMatch(JSON.stringify(staging.services), /"dndr-collector"|"prd_hakandundar_me_binding"/);
   assert.deepEqual(Object.keys(config.env), ["staging"]);
 });

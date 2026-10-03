@@ -16,8 +16,20 @@
     "run_worker_first": ["/*"]
   },
 
-  // The top level above is production and is unchanged. `wrangler deploy`
-  // with no --env still deploys exactly that.
+  // Production. Since 2026-10-03 the Worker also reports each document view of
+  // the page to DNDR Analytics production, best effort, after the response;
+  // the page and its V1 browser beacon are unchanged. DNDR reads
+  // props.producerId from this binding, so this Worker's code cannot choose
+  // another identity. `wrangler deploy` with no --env deploys exactly this.
+  "vars": { "ENVIRONMENT": "production" },
+  "services": [
+    {
+      "binding": "DNDR_COLLECTOR",
+      "service": "dndr-collector",
+      "entrypoint": "ProducerApi",
+      "props": { "producerId": "prd_hakandundar_me_binding" }
+    }
+  ],
   "env": {
     // A separate Worker on a dndr.net hostname, so nothing about it can touch
     // the hakandundar.me zone. Built with `node build.js --staging`, which
@@ -40,7 +52,8 @@
         { "pattern": "hakandundar-me-staging.dndr.net", "custom_domain": true }
       ],
       // DNDR reads props.producerId from this binding, so this Worker's code
-      // cannot choose another identity. Production declares no binding.
+      // cannot choose another identity. Staging binds the staging collector
+      // only; vars and services are not inherited from the top level.
       "services": [
         {
           "binding": "DNDR_COLLECTOR",
