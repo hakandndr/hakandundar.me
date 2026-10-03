@@ -40,3 +40,30 @@ Found:
 
 Not done, deliberately: no production deploy, DNS or zone change; production
 keeps its V1 beacon.
+
+## 2026-10-03 — Production page views to DNDR Analytics (DNDR Batch C1)
+
+Requested: production reports page views to DNDR Analytics as an additive
+copy; the page, its headers and its V1 beacon stay as they are; no redirect
+to `hakan.run`.
+
+Done:
+
+- Baseline first (Git bundle, versions, the live files and headers). The
+  production build was byte-identical to the live page before any change.
+- Drift since the deployed `e21dc6f`: only the staging integration
+  (`3a3d72b`, inert in production; the production build unchanged).
+- `worker.js`: `"production"` added to `DNDR_FORWARD_ENVIRONMENTS`;
+  `wrangler.jsonc`: top-level `ENVIRONMENT=production` and the production
+  `DNDR_COLLECTOR` binding (`prd_hakandundar_me_binding`). Tests: two adapted,
+  five added (production report; every collector failure and a missing
+  binding leave the response byte-for-byte unchanged; a slow collector is not
+  waited for; one id per request; the browser cannot choose an identity;
+  configuration separation). `node --test`: 12 of 12. Commit `49350f1`.
+- Deployed `a9d262c5-046f-4b9f-86ac-f82477121284`; live files, the 307, the
+  404s and the headers identical to before.
+- DNDR enrolled the site; one controlled browser view was recorded by the V1
+  beacon (row 4535) and by DNDR (event 268, native start).
+
+Not done, deliberately: no page change, DNS or zone change; workers.dev and
+preview URLs unchanged (P18); the V1 beacon stays.

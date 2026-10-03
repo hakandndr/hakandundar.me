@@ -3,6 +3,34 @@
 What is verified to exist, with the date it was read. Anything not read from a
 live request or the working tree is listed under "Unknown".
 
+## 2026-10-03
+
+**Production** (read 2026-10-03):
+
+- Worker `hakandundar-me`, version `a9d262c5-046f-4b9f-86ac-f82477121284`
+  (deployed 2026-10-03T10:42:11Z from `49350f1`; previous
+  `b58612a6-948a-4951-b67b-688c55d51770`), custom domain `hakandundar.me`,
+  bindings `ASSETS` and `DNDR_COLLECTOR` (→ `dndr-collector#ProducerApi`,
+  `props.producerId = prd_hakandundar_me_binding`), `ENVIRONMENT=production`.
+- The page is unchanged: the served `/`, `style.css` and `favicon.svg` are
+  byte-identical before and after the deploy (`/` SHA-256 `3e407505…a64a9`,
+  equal to `node build.js`); `/index.html` still answers 307 to `/`,
+  `/missing-page` and `/favicon.ico` 404; the response headers are identical.
+- Original analytics unchanged: the page's V1 browser beacon to
+  `https://dndr.net/collect` still records each view (V1 row 4535 for the
+  controlled view below; 148 V1 rows for this host).
+- Additional copy: the Worker reports each document view of `/` to DNDR
+  Analytics production, after the response, best effort. DNDR enrolled the
+  site on 2026-10-03T10:43:19Z (`prop_hakandundar_me` / `site_hakandundar_me`).
+  One controlled browser view at 10:44:46Z was stored by DNDR once as event
+  268 (`request:a44b5a88eb890432`), which is DNDR's native start for this
+  site (2026-10-03T10:44:48.178Z); the stylesheet request was not counted.
+- workers.dev and preview URLs remain enabled (DNDR P18, unchanged); a view
+  there would be refused by DNDR as an unenrolled hostname and counted.
+
+**Backup.** `D:\IT\_backups\dndr-control-plane\hakandundar.me\20261003T1040Z_c1-production-baseline\` (Git bundle, versions, live file
+and header snapshots before and after, rollback).
+
 ## 2026-10-01
 
 **Production** (read 2026-10-01, unchanged since 2026-08-24):

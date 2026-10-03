@@ -29,20 +29,19 @@ minute; the page is unaffected). Remove staging entirely: delete the
 
 ## Production
 
-Unchanged by the staging work and not deployed on 2026-10-01. Before a
-production deploy:
+Since 2026-10-03 production reports page views to DNDR Analytics production
+through `DNDR_COLLECTOR` (`prd_hakandundar_me_binding`); the page and its V1
+beacon are unchanged. Before a production deploy:
 
 1. `node --test`.
 2. `node build.js`, then compare `dist/index.html` with the live page:
    `curl -s https://hakandundar.me/ | sha256sum` against
    `sha256sum dist/index.html`. A difference that is not the intended content
    change means the working copy and production disagree; stop.
-3. `npx wrangler deploy --env="" --dry-run`: one binding, `ASSETS`; no
-   `DNDR_COLLECTOR`.
+3. `npx wrangler deploy --dry-run`: `ASSETS`, `DNDR_COLLECTOR
+   (dndr-collector#ProducerApi)`, `ENVIRONMENT ("production")`.
 
-The next production deploy also ships the staging-only forwarding code in
-`worker.js`; it is inert there (no binding, `ENVIRONMENT` unset). Moving
-production from the V1 beacon to the Worker report is a separate change with
-its own approval.
-
-Rollback: `npx wrangler rollback b58612a6-948a-4951-b67b-688c55d51770`.
+Stop the DNDR copy without a deploy: DNDR disables `prd_hakandundar_me_binding`
+(refused within a minute; the page is unaffected). Rollback of the Worker:
+`npx wrangler rollback b58612a6-948a-4951-b67b-688c55d51770` (the version
+before the DNDR copy).
