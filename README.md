@@ -7,8 +7,8 @@ data/projects.json   all content lives here
 assets/style.css     all styling lives here
 assets/favicon.svg   favicon
 build.js             renders dist/ from the JSON (dist-staging/ with --staging)
-worker.js            Worker in front of the assets: security headers; on staging
-                     only, the server-side page view report to DNDR
+worker.js            Worker in front of the assets: security headers; in staging
+                     and production, the server-side page view report to DNDR
 wrangler.jsonc       Cloudflare deploy config (top level = production, env.staging)
 tests/               node --test, no dependencies
 docs/                CURRENT_STATE, OPERATIONS, PROCESS
@@ -34,7 +34,7 @@ build is unaffected by the flag's existence.
 node --test
 ```
 
-Node 22+. Checks the Worker (headers, staging-only page view report, failure
+Node 22+. Checks the Worker (headers, the page view report in both environments, failure
 isolation, configuration) and both builds.
 
 ## Preview locally
@@ -106,17 +106,19 @@ must be checked first.
 hakandundar.me is its own property in DNDR Analytics (`prop_hakandundar_me`).
 It is not redirected anywhere and nothing about it is attributed to hakan.run.
 
-- Production (unchanged): the page carries a small browser beacon to DNDR's V1
-  collector, `https://dndr.net/collect`, sending `hostname + pathname + query`.
-  The browser sends at most one event per page per tab session; the collector
-  also applies its existing 60-second `IP + page` rate limit.
-- Staging: no browser beacon. The Worker reports one PAGE event per document
-  view of the page to DNDR Analytics V2 through a Cloudflare Service Binding
-  (`DNDR_COLLECTOR`, producer `prd_hakandundar_me_staging_binding`, taken from
-  the binding, never from this code). The visitor's response never waits for
-  it, and a DNDR failure changes nothing but a log line with the event id.
-- Moving production from the beacon to the Worker report is a separate,
-  separately approved change.
+- Production: the page carries a small browser beacon to DNDR's V1
+  collector, `https://dndr.net/collect`, sending `hostname + pathname + query`
+  (the browser sends at most one event per page per tab session; the
+  collector applies its 60-second `IP + page` rate limit). Since 2026-10-03
+  the Worker also reports one PAGE event per document view to DNDR Analytics
+  V2 (`DNDR_COLLECTOR` → `dndr-collector`, producer
+  `prd_hakandundar_me_binding`), as an additional copy; the beacon stays.
+- Staging: no browser beacon. The Worker reports the same way to DNDR's
+  staging collector (producer `prd_hakandundar_me_staging_binding`).
+- In both, the producer comes from the binding, never from this code; the
+  visitor's response never waits for the report, and a DNDR failure changes
+  nothing but a log line with the event id. Retiring the V1 beacon is a
+  separate, separately approved change.
 
 ## Notes
 
