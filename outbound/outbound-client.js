@@ -1,5 +1,6 @@
-// Serialized without imports so each source serves this component from itself.
-export function installOutbound() {
+// Literal standalone source: bundling must never add lexical helper references
+// to browser code that is served separately from the Worker module.
+export const OUTBOUND_SCRIPT = String.raw`(function installOutbound() {
   "use strict";
   if (document.__dndrOutboundInstalled) return;
   document.__dndrOutboundInstalled = true;
@@ -29,6 +30,5 @@ export function installOutbound() {
   }
   document.addEventListener("click", capture);
   document.addEventListener("auxclick", capture);
-}
-
-export const OUTBOUND_SCRIPT = `(${installOutbound.toString()})();\n`;
+})();
+`;

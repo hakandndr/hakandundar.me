@@ -1,6 +1,12 @@
 # Current state
 
-## Verified outbound release — 2026-10-06
+## Verified standalone outbound correction — 2026-10-06
+
+Verified production: 69206be0-8508-4a4a-a9f6-b228091c0bd5 at 100%; immediate pre-correction rollback 92585735-4bbd-4f88-a6f6-ebb60fd55c17 retains the standalone-script defect and is a public-delivery recovery baseline, not proof of outbound collection. 15 tests and build and production dry-run passed. No new migration or binding change; public assets and existing source authority are preserved.
+
+The browser component is now literal standalone source. Serializing a function after bundling introduced an unavailable __name helper: endpoint-only acceptance had missed actual browser execution. The corrected deployed script is byte-identical to the shared component and was executed twice in a browser fixture with exactly one listener set, one normalized external request, internal-alias exclusion and uninterrupted navigation during network failure. Trusted binding identity, PAGE writers, source panels and historical records are preserved. Earlier checkpoints below are historical; no retention or business-data change was planned. Current build-trigger settings remain unknown; capture fresh rollback and compare the active deployment after any push.
+
+## Historical checkpoint outbound release — 2026-10-06
 
 Worker `hakandundar-me` is `92585735-4bbd-4f88-a6f6-ebb60fd55c17`, rollback `a9d262c5-046f-4b9f-86ac-f82477121284`. The existing PAGE writer and V1 beacon remain. A same-origin `/__analytics/outbound` endpoint and deferred component use the configured `prd_hakandundar_me_binding`; this source has no local analytics database. Browser identity claims are rejected, targets lose query/fragment material, and navigation does not wait for forwarding.
 
