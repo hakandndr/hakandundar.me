@@ -1,5 +1,12 @@
 # Operations
 
+## Outbound release operation — 2026-10-06
+
+Production version and rollback are in CURRENT_STATE. `node --test` runs all 15 source tests. The source asset files do not change: response-time HTML injection supplies `/__analytics/outbound.js`, and `POST /__analytics/outbound` accepts only UUID/path/destination with exact same-origin/source-path validation. Forwarding retries use the same identity through the existing Service Binding. A 204 is scheduled telemetry, not a durable-write acknowledgement.
+
+When comparing the live page to `dist/index.html`, remove only the inserted outbound script before comparing; the existing content, V1 beacon, styles and navigation remain the baseline. Do not repeat broad visual acceptance. Current build-trigger readback is unavailable; treat a push as a possible production mutation and re-read the active version afterwards.
+
+
 Run Wrangler with the owner's OAuth login. If `CLOUDFLARE_API_TOKEN` is set in
 the shell to a token without Workers permissions, unset it for the command.
 

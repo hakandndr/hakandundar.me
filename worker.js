@@ -13,6 +13,9 @@
 //
 // The cost is a Worker invocation per request on a single-page site. That is the
 // price of owning the headers; the alternative is not owning them.
+import { handleOutbound, injectOutbound, outboundScriptResponse } from "./outbound/outbound-source.js";
+const OUTBOUND_ALIASES = ["hakandundar.me", "www.hakandundar.me"];
+
 const SECURITY_HEADERS = {
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "SAMEORIGIN",
@@ -126,12 +129,15 @@ export async function forwardToDndr(env, event) {
 
 export default {
   async fetch(request, env, ctx) {
+    const path = new URL(request.url).pathname;
+    if (env.ENVIRONMENT === "production" && path === "/__analytics/outbound.js") return withSecurityHeaders(outboundScriptResponse());
+    if (env.ENVIRONMENT === "production" && path === "/__analytics/outbound") return withSecurityHeaders(await handleOutbound(request, env, ctx, { aliases: OUTBOUND_ALIASES, acceptsPath: path => PAGE_PATHS.has(path) }));
     const response = withSecurityHeaders(await env.ASSETS.fetch(request));
     // A staging deployment is never indexed.
     if (env && env.ENVIRONMENT === "staging") response.headers.set("X-Robots-Tag", "noindex, nofollow");
     if (dndrForwardingEnabled(env) && ctx && typeof ctx.waitUntil === "function" && isPageView(request, response)) {
       ctx.waitUntil(forwardToDndr(env, pageEvent(request)).catch(() => "error"));
     }
-    return response;
+    return env.ENVIRONMENT === "production" && request.method === "GET" && PAGE_PATHS.has(path) ? injectOutbound(response, OUTBOUND_ALIASES) : response;
   },
 };

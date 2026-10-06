@@ -1,5 +1,12 @@
 # Current state
 
+## Verified outbound release — 2026-10-06
+
+Worker `hakandundar-me` is `92585735-4bbd-4f88-a6f6-ebb60fd55c17`, rollback `a9d262c5-046f-4b9f-86ac-f82477121284`. The existing PAGE writer and V1 beacon remain. A same-origin `/__analytics/outbound` endpoint and deferred component use the configured `prd_hakandundar_me_binding`; this source has no local analytics database. Browser identity claims are rejected, targets lose query/fragment material, and navigation does not wait for forwarding.
+
+All 15 tests passed, build artifacts and dry-run passed. One controlled automated event and same-ID replay produced exactly one central OUTBOUND_CLICK, PAGE remained 371, and public HTML (after removing only the inserted component) was identical. Historical: the October 3 statements below are earlier checkpoints. Planned: no local business database, redesign or retention. Unknown: the current build-trigger API read returns 403; it cannot establish whether a trigger exists. Re-read live state before another mutation.
+
+
 What is verified to exist, with the date it was read. Anything not read from a
 live request or the working tree is listed under "Unknown".
 

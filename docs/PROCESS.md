@@ -67,3 +67,7 @@ Done:
 
 Not done, deliberately: no page change, DNS or zone change; workers.dev and
 preview URLs unchanged (P18); the V1 beacon stays.
+
+## 2026-10-06 — Add trusted outbound forwarding
+
+Scoped owner-authorized release from the current source. Added same-origin instrumentation and three tests without changing PAGE, the V1 beacon or public content. All 15 tests and production dry-run passed. Production `92585735-4bbd-4f88-a6f6-ebb60fd55c17`; rollback `a9d262c5-046f-4b9f-86ac-f82477121284`. One controlled event plus replay stored one central event and no PAGE (371 unchanged); stripped public HTML equals the original. Current build-trigger API permission is unavailable, so a push requires active-version readback.
